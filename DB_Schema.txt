@@ -1,0 +1,56 @@
+-- Invoices Table
+CREATE TABLE invoices (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    reference_no VARCHAR(50) UNIQUE NOT NULL,
+    client_name VARCHAR(255) NOT NULL,
+    address TEXT NOT NULL,
+    total_due DECIMAL(10,2) NOT NULL,
+    discount DECIMAL(10,2) NOT NULL,
+    net_amount DECIMAL(10,2) NOT NULL,
+    invoice_number VARCHAR(50) UNIQUE NOT NULL, -- Ensure this column exists
+    issued_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Invoice Logs Table
+CREATE TABLE invoice_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    invoice_id INT NOT NULL,
+    action VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    user_id INT,  -- Track the user/admin who made the change
+    FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE
+);
+
+-- Invoice Particulars Table (Detailed Items)
+CREATE TABLE invoice_particulars (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    invoice_id INT NOT NULL,
+    description TEXT NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Track when the particular was added
+    FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE
+);
+
+-- (Optional) Index for better performance on large datasets
+CREATE INDEX idx_invoice_id ON invoice_particulars(invoice_id);
+
+-- (Optional) Add check constraint for discount validation
+ALTER TABLE invoices
+ADD CONSTRAINT chk_discount CHECK (discount <= total_due);
+
+
+CREATE TABLE invoice_deletion_log (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    invoice_id INT NOT NULL,
+    invoice_number VARCHAR(100),
+    reference_no VARCHAR(100),
+    client_name VARCHAR(255),
+    issued_date DATE,
+    total_amount DECIMAL(10,2),
+    discount DECIMAL(10,2),
+    net_amount DECIMAL(10,2),
+    remarks TEXT NOT NULL,
+    deleted_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+
